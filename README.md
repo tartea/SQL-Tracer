@@ -1,4 +1,4 @@
-# 🧪 MyBatis SQL Tracer - ibatis agent
+# 🧪 SQL Tracer - sql agent
 
 > 使用 Java Agent 技术拦截 MyBatis 执行的 SQL，并输出至控制台及本地文件。
 
