@@ -73,6 +73,7 @@ java -javaagent:SQL-Tracer.jar -jar your-application.jar
 
 - 本工具适用于开发/测试环境，不建议在生产环境中长期开启。
 - 若应用中有大量 SQL，日志文件可能会增长迅速。
+- 每一次重新启动，之前的文件都会被重命名，然后产生一个新的文件。
 
 ---
 
