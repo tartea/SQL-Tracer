@@ -57,9 +57,9 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
                 "{ "
                         + "   try { "
                         + getCodeBlock()
-                        + "       org.ibatis.logger.LoggerUtil.info( \"\u001B[31m [SQL 打印]: \" + statementSql); "
+                        + "       org.tracer.logger.LoggerUtil.info( \"[SQL 打印]: \" + statementSql); "
                         + "   } catch (Exception e) { "
-                        + "       org.ibatis.logger.LoggerUtil.error(\"⚠️ 获取 SQL 失败: \" + e.getMessage()); "
+                        + "       org.tracer.logger.LoggerUtil.error(\"⚠️ 获取 SQL 失败: \" + e.getMessage()); "
                         + "       e.printStackTrace(); "
                         + "   } "
                         + "} ";
@@ -82,14 +82,12 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
                                         "    try {\n" +
                                         "        $_ = $proceed($$);\n" +  // 调用原始方法并自动处理返回值
                                         "    } finally {\n" +
-                                        "       org.ibatis.logger.LoggerUtil.info( \"\u001B[34m [SQL 打印]: \" + statementSql); \n" +
+                                        "       org.tracer.logger.LoggerUtil.info(statementSql); \n" +
                                         " long l = System.currentTimeMillis() - start; \n" +
-                                        " if(l < 1000){ \n" +
-                                        "       org.ibatis.logger.LoggerUtil.info(\"   [SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\");\n" +
-                                        "        }else if(l  < 2000){ \n" +
-                                        "org.ibatis.logger.LoggerUtil.info(\"\\u001B[43m   [SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\"); \n" +
+                                        " if(l < 2000){ \n" +
+                                        "       org.tracer.logger.LoggerUtil.info(\"[SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\");\n" +
                                         "}else { \n" +
-                                        "org.ibatis.logger.LoggerUtil.info(\"\\\\u001B[31;42m   [SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\"); \n" +
+                                        "org.tracer.logger.LoggerUtil.warn(\"[SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\"); \n" +
                                         " } \n" +
                                         "    }\n" +
                                         "}", "query"));
