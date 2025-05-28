@@ -1,5 +1,7 @@
 package org.tracer.logger;
 
+import org.tracer.handler.ParamHandler;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,7 +15,7 @@ public class LoggerUtil {
     // 单例实例
     public static LoggerUtil instance = null;
     private final BufferedWriter writer;
-    private final boolean outputToConsole;
+
 
     // 日志级别枚举
     public enum Level {
@@ -24,9 +26,7 @@ public class LoggerUtil {
     /**
      * 私有构造器（单例模式）
      */
-    private LoggerUtil(String logFilePath, boolean outputToConsole) {
-
-        this.outputToConsole = outputToConsole;
+    private LoggerUtil(String logFilePath) {
 
         try {
             // 文件存在，进行重命名
@@ -43,7 +43,6 @@ public class LoggerUtil {
                 }
             }
 
-
             this.writer = new BufferedWriter(new FileWriter(logFilePath, true));
 
             // 注册关闭钩子（JVM 关闭前自动执行）
@@ -57,11 +56,10 @@ public class LoggerUtil {
     /**
      * 私有构造器（单例模式）
      */
-    public static void builder(Map<String, Object> agentArgs) {
+    public static void builder(Map<String, String> agentArgs) {
 
-        boolean outputToConsole = agentArgs.get("outputToConsole") != null && Boolean.parseBoolean((String) agentArgs.get("outputToConsole"));
-        String logFilePath = agentArgs.get("logFilePath") != null ? (String) agentArgs.get("logFilePath") : "sql-tracer.log";
-        LoggerUtil.instance = new LoggerUtil(logFilePath, outputToConsole);
+        String logFilePath = agentArgs.get("logFilePath") != null ? agentArgs.get("logFilePath") : "sql-tracer.log";
+        LoggerUtil.instance = new LoggerUtil(logFilePath);
     }
 
     /**
@@ -78,12 +76,13 @@ public class LoggerUtil {
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         String logMessage = String.format("[%s] [%s] %s%n", timestamp, level, message);
 
-        if (outputToConsole) {
+        if (ParamHandler.getOutputToConsole()) {
             System.out.print(logMessage);
         }
 
         try {
             writer.write(logMessage);
+            this.writer.flush();
         } catch (IOException e) {
             System.err.println("Failed to write log: " + e.getMessage());
         }
