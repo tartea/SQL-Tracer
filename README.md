@@ -66,6 +66,7 @@ java -javaagent:SQL-Tracer.jar -jar your-application.jar
 |--------|------|
 | `logFilePath` | 日志文件路径（默认 `当前项目下的sql-tracer.log`） |
 | `outputToConsole` | 控制台输出，可选 `true`, `false` |
+| `serverEnable` | 用于在项目启动的过程中通过socket修改outputToConsole变量` |
 
 ---
 
