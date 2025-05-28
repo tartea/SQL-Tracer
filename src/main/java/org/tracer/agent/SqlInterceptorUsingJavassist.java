@@ -35,7 +35,6 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
                 cc.defrost();
             }
 
-//            parameterizeAgent(cc);
             queryAgent(cc);
             updateAgent(cc);
 
