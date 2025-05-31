@@ -3,6 +3,7 @@ package org.tracer.agent;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
+import org.tracer.handler.ParamHandler;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
@@ -40,6 +41,10 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
 
             byte[] byteCode = cc.toBytecode();
             cc.detach(); // 释放资源
+
+            // 加载组件
+            ParamHandler.loadAgent();
+
             return byteCode;
 
         } catch (Exception e) {

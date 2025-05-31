@@ -59,14 +59,13 @@ java -javaagent:SQL-Tracer.jar -jar your-application.jar
 你可以在启动时通过 `options` 参数传入配置：
 
 ```bash
--javaagent:/path/to/mybatis-sql-tracer-agent.jar==logFilePath=D:\edition\cloud\12.log,outputToConsole=true
+-javaagent:/path/to/mybatis-sql-tracer-agent.jar=logFilePath=D:\edition\cloud\12.log,outputToConsole=true
 ```
 
 | 配置项 | 说明 |
 |--------|------|
 | `logFilePath` | 日志文件路径（默认 `当前项目下的sql-tracer.log`） |
 | `outputToConsole` | 控制台输出，可选 `true`, `false` |
-| `serverEnable` | 用于在项目启动的过程中通过socket修改outputToConsole变量` |
 
 ---
 

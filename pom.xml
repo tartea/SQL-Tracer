@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.ibatis</groupId>
+    <groupId>org.tracer</groupId>
     <artifactId>SQL-Tracer</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -22,7 +22,11 @@
             <artifactId>javassist</artifactId>
             <version>3.29.2-GA</version>
         </dependency>
-
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.38</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -30,24 +34,37 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Premain-Class>com.tracer.agent.MyBatisAgent</Premain-Class>  <!-- 指定 Agent 类 -->
-                            <Main-Class>com.tracer.agent.MyBatisAgent</Main-Class>  <!-- 指定 Agent 类 -->
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>9</source>
                     <target>9</target>
                 </configuration>
+            </plugin>
+            <!-- 将依赖包都打入jar包中 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.tracer.agent.MyBatisAgent</mainClass>
+                                    <manifestEntries>
+                                        <Premain-Class>org.tracer.agent.MyBatisAgent</Premain-Class>
+                                        <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                                        <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

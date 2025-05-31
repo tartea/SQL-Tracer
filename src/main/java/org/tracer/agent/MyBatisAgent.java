@@ -6,7 +6,6 @@ import java.lang.instrument.Instrumentation;
 
 public class MyBatisAgent {
 
-
     public static void premain(String args, Instrumentation inst) {
         System.out.println("MyBatis SQL Capture Agent 已加载！");
 

@@ -1,6 +1,5 @@
 package org.tracer.handler;
 
-import org.tracer.listener.AgentSocket;
 import org.tracer.logger.LoggerUtil;
 
 import java.util.HashMap;
@@ -34,10 +33,14 @@ public class ParamHandler {
                 }
             }
         }
+    }
+
+    /**
+     * 加载各种组件
+     */
+    public static void loadAgent() {
         // 处理日志
         LoggerUtil.builder(agentArgMap);
-        // 处理动态参数变更
-        AgentSocket.start();
     }
 
     /**
