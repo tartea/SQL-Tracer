@@ -15,7 +15,8 @@ public class LoggerUtil {
     // 单例实例
     public static LoggerUtil instance = null;
     private final BufferedWriter writer;
-
+    // 定义 10MB 的字节数
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
     // 日志级别枚举
     public enum Level {
@@ -34,12 +35,15 @@ public class LoggerUtil {
 
             // 如果文件已存在，进行重命名
             if (logFile.exists()) {
-                String backupName = generateBackupFileName(logFile);
-                File backupFile = new File(backupName);
-                if (logFile.renameTo(backupFile)) {
-                    System.out.println("Renamed existing log file to: " + backupName);
-                } else {
-                    System.err.println("Failed to rename log file.");
+                long fileSize = logFile.length();
+                if (fileSize > MAX_FILE_SIZE) {
+                    String backupName = generateBackupFileName(logFile);
+                    File backupFile = new File(backupName);
+                    if (logFile.renameTo(backupFile)) {
+                        System.out.println("Renamed existing log file to: " + backupName);
+                    } else {
+                        System.err.println("Failed to rename log file.");
+                    }
                 }
             }
 
