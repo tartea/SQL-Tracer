@@ -38,6 +38,7 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
 
             queryAgent(cc);
             updateAgent(cc);
+            batchAgent(cc);
 
             byte[] byteCode = cc.toBytecode();
             cc.detach(); // 释放资源
@@ -102,6 +103,10 @@ public class SqlInterceptorUsingJavassist implements ClassFileTransformer {
 
     private void updateAgent(CtClass cc) throws NotFoundException, CannotCompileException {
         CtMethod method = cc.getDeclaredMethod("update");
+        insertCode(method);
+    }
+    private void batchAgent(CtClass cc) throws NotFoundException, CannotCompileException {
+        CtMethod method = cc.getDeclaredMethod("batch");
         insertCode(method);
     }
 
