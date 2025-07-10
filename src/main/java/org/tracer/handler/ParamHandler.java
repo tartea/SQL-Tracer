@@ -4,6 +4,7 @@ import org.tracer.logger.LoggerUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 参数处理
@@ -13,23 +14,29 @@ public class ParamHandler {
     private static Map<String, String> agentArgMap = new HashMap<>();
 
     static {
-        agentArgMap.put("outputToConsole", "false");
-        agentArgMap.put("serverPort", "18988");
-        agentArgMap.put("serverEnable", "false");
+        // 0代表关闭，1代表开启
+        // 是否控制台打印 第一位
+        agentArgMap.put("outputToConsole", "0");
+        // 文件覆盖  第二位
+        agentArgMap.put("fileOverlay", "0");
     }
 
     /**
-     * 解析参数（格式：key1=value1,key2=value2）
+     * 解析参数（
+     * 为了解决参数过长的问题，采用二进制的方式，目前采用8位，后续累加
      */
     public static void parseArgs(String agentArgs) {
         if (agentArgs != null && !agentArgs.isEmpty()) {
             String[] pairs = agentArgs.split(",");
             for (String pair : pairs) {
                 String[] entry = pair.split("=", 2); // 最多分割成两部分
-                if (entry.length == 2) {
-                    String key = entry[0].trim();
+                if (entry.length == 2 && Objects.equals(entry[0], "tracer")) {
                     String value = entry[1].trim();
-                    agentArgMap.put(key, value);
+                    String binaryStr = String.format("%8s", Integer.toBinaryString(Integer.parseInt(value))).replace(' ', '0');
+                    // 第一位
+                    agentArgMap.put("outputToConsole", String.valueOf(binaryStr.charAt(binaryStr.length() - 1)));
+                    // 第二位
+                    agentArgMap.put("fileOverlay", String.valueOf(binaryStr.charAt(binaryStr.length() - 2)));
                 }
             }
         }
@@ -49,24 +56,8 @@ public class ParamHandler {
      * @return
      */
     public static Boolean getOutputToConsole() {
-        return agentArgMap.get("outputToConsole") != null && Boolean.parseBoolean(agentArgMap.get("outputToConsole"));
-    }
-
-    public static Integer getServerPort() {
-        return agentArgMap.get("serverPort") != null ? Integer.parseInt(agentArgMap.get("serverPort")) : 18988;
-    }
-
-    /**
-     * 获取服务端口号
-     *
-     * @return
-     */
-    public static Boolean isServerEnable() {
-        return agentArgMap.get("serverEnable") != null && Boolean.parseBoolean(agentArgMap.get("serverEnable"));
+        return Objects.equals(agentArgMap.get("outputToConsole"), "1");
     }
 
 
-    public static void setOutputToConsole(String outputToConsole) {
-        agentArgMap.put("outputToConsole", outputToConsole);
-    }
 }
