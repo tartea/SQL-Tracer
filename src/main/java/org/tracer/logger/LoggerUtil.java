@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 public class LoggerUtil {
 
@@ -16,7 +17,7 @@ public class LoggerUtil {
     public static LoggerUtil instance = null;
     private final BufferedWriter writer;
     // 定义 10MB 的字节数
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    private static final long MAX_FILE_SIZE = 10 * 2; // 10 MB
 
     // 日志级别枚举
     public enum Level {
@@ -26,8 +27,9 @@ public class LoggerUtil {
 
     /**
      * 私有构造器（单例模式）
+     * @param fileOverlay 是否覆盖操作，0不覆盖，1覆盖
      */
-    private LoggerUtil(String logFilePath) {
+    private LoggerUtil(String logFilePath,String fileOverlay) {
 
         try {
             // 文件存在，进行重命名
@@ -37,16 +39,20 @@ public class LoggerUtil {
             if (logFile.exists()) {
                 long fileSize = logFile.length();
                 if (fileSize > MAX_FILE_SIZE) {
-                    String backupName = generateBackupFileName(logFile);
-                    File backupFile = new File(backupName);
-                    if (logFile.renameTo(backupFile)) {
-                        System.out.println("Renamed existing log file to: " + backupName);
-                    } else {
-                        System.err.println("Failed to rename log file.");
+                    
+                    if(Objects.equals(fileOverlay,"0")){
+                        String backupName = generateBackupFileName(logFile);
+                        File backupFile = new File(backupName);
+                        if (logFile.renameTo(backupFile)) {
+                            System.out.println("Renamed existing log file to: " + backupName);
+                        } else {
+                            System.err.println("Failed to rename log file.");
+                        }
+                    }else {
+                        logFile.delete();
                     }
                 }
             }
-
             this.writer = new BufferedWriter(new FileWriter(logFilePath, true));
 
             // 注册关闭钩子（JVM 关闭前自动执行）
@@ -56,14 +62,11 @@ public class LoggerUtil {
         }
     }
 
-
     /**
      * 私有构造器（单例模式）
      */
-    public static void builder(Map<String, String> agentArgs) {
-
-        String logFilePath = agentArgs.get("logFilePath") != null ? agentArgs.get("logFilePath") : "sql-tracer.log";
-        LoggerUtil.instance = new LoggerUtil(logFilePath);
+    public static void builder(String logFilePath, String fileOverlay) {
+        LoggerUtil.instance = new LoggerUtil(Objects.isNull(logFilePath) ? "sql-tracer.log" : logFilePath, fileOverlay);
     }
 
     /**
