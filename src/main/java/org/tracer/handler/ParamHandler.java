@@ -47,7 +47,7 @@ public class ParamHandler {
      */
     public static void loadAgent() {
         // 处理日志
-        LoggerUtil.builder(agentArgMap);
+        LoggerUtil.builder(agentArgMap.get("logFilePath"),agentArgMap.get("fileOverlay"));
     }
 
     /**
