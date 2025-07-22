@@ -23,14 +23,18 @@ public class ClientPreparedStatementJavassist extends AbstractJavassist {
 
     @Override
     protected void instrumentCtClass(CtClass cc) throws NotFoundException, CannotCompileException {
-        queryAgent(cc);
-        updateAgent(cc);
-        batchAgent(cc);
+        executeAgent(cc);
+        addBatchAgent(cc);
     }
 
 
-    private void queryAgent(CtClass cc) throws NotFoundException, CannotCompileException {
-        CtMethod method = cc.getDeclaredMethod("query");
+    private void executeAgent(CtClass cc) throws NotFoundException, CannotCompileException {
+        CtMethod method = cc.getDeclaredMethod("execute");
+        insertCode(method);
+    }
+
+    private void addBatchAgent(CtClass cc) throws NotFoundException, CannotCompileException {
+        CtMethod method = cc.getDeclaredMethod("addBatch");
         insertCode(method);
     }
 
@@ -45,28 +49,13 @@ public class ClientPreparedStatementJavassist extends AbstractJavassist {
                                         "    try {\n" +
                                         "        $_ = $proceed($$);\n" +  // 调用原始方法并自动处理返回值
                                         "    } finally {\n" +
-                                        "       org.tracer.logger.LoggerUtil.info(statementSql); \n" +
                                         " long l = System.currentTimeMillis() - start; \n" +
-                                        " if(l < 2000){ \n" +
-                                        "       org.tracer.logger.LoggerUtil.info(\"[SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\");\n" +
-                                        "}else { \n" +
-                                        "org.tracer.logger.LoggerUtil.warn(\"[SQL 耗时] executed in \" + (System.currentTimeMillis() - start) + \" ms\"); \n" +
-                                        " } \n" +
+                                        "       org.tracer.logger.LoggerUtil.info(\"[mysql][耗时]\"+ l +\"毫秒 [sql ]\"+ statementSql); \n" +
                                         "    }\n" +
                                         "}");
                     }
                 }
         );
-    }
-
-    private void updateAgent(CtClass cc) throws NotFoundException, CannotCompileException {
-        CtMethod method = cc.getDeclaredMethod("update");
-        insertCode(method);
-    }
-
-    private void batchAgent(CtClass cc) throws NotFoundException, CannotCompileException {
-        CtMethod method = cc.getDeclaredMethod("batch");
-        insertCode(method);
     }
 
     /**
@@ -76,10 +65,10 @@ public class ClientPreparedStatementJavassist extends AbstractJavassist {
      */
     private String getCodeBlock() {
         return
-                "       java.lang.String statementSql = statement.toString();"
-                        + "       int index = statement.toString().indexOf(\"Statement:\"); "
+                "       java.lang.String statementSql = this.toString();"
+                        + "       int index = statementSql.indexOf(\"Statement:\"); "
                         + "       if(index != -1){ "
-                        + "       statementSql = statementSql.substring(index + 10).replaceAll(\"[\\\\r\\\\n\\\\s]+\", \" \"); } ";
+                        + "       statementSql = org.tracer.logger.SqlUtil.formatSql(statementSql.substring(index + 10)); } ";
     }
 
 }

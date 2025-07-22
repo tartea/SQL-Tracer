@@ -26,21 +26,31 @@ public class TSDBStatementJavassist extends AbstractJavassist {
 
 
     private void instrumentExecute(CtClass cc) throws NotFoundException, CannotCompileException {
-        CtMethod method = cc.getDeclaredMethod("execute");
+        insertCode(cc, "execute");
+        insertCode(cc, "executeQuery");
+        insertCode(cc, "executeUpdate");
+    }
+
+
+    private void insertCode(CtClass cc, String methodName) throws CannotCompileException, NotFoundException {
+        CtMethod method = cc.getDeclaredMethod(methodName);
         method.instrument(
                 new ExprEditor() {
                     public void edit(MethodCall m) throws CannotCompileException {
                         m.replace(
                                 "{\n" +
+                                        "    long start = System.currentTimeMillis();\n" +
                                         "    try {\n" +
                                         "        $_ = $proceed($$);\n" +  // 调用原始方法并自动处理返回值
                                         "    } finally {\n" +
-                                        "       org.tracer.logger.LoggerUtil.info(sql); \n" +
+                                        " long l = System.currentTimeMillis() - start; \n" +
+                                        "       org.tracer.logger.LoggerUtil.info(\"[TSDB][耗时]\"+ l +\"毫秒 [sql ]\"+ org.tracer.logger.SqlUtil.formatSql(sql)); \n" +
                                         "    }\n" +
                                         "}");
                     }
                 }
         );
     }
+
 
 }
