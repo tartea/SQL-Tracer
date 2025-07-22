@@ -1,5 +1,6 @@
 package org.tracer.handler;
 
+import org.tracer.dto.AgentParam;
 import org.tracer.logger.LoggerUtil;
 
 import java.util.HashMap;
@@ -11,15 +12,9 @@ import java.util.Objects;
  */
 public class ParamHandler {
 
-    private static Map<String, String> agentArgMap = new HashMap<>();
 
-    static {
-        // 0代表关闭，1代表开启
-        // 是否控制台打印 第一位
-        agentArgMap.put("outputToConsole", "0");
-        // 文件覆盖  第二位
-        agentArgMap.put("fileOverlay", "0");
-    }
+    // 协议参数
+    private static AgentParam agentParam = new AgentParam();
 
     /**
      * 解析参数（
@@ -34,12 +29,21 @@ public class ParamHandler {
                     String value = entry[1].trim();
                     String binaryStr = String.format("%8s", Integer.toBinaryString(Integer.parseInt(value))).replace(' ', '0');
                     // 第一位
-                    agentArgMap.put("outputToConsole", String.valueOf(binaryStr.charAt(binaryStr.length() - 1)));
+                    agentParam.setOutputToConsole(isValid(binaryStr.charAt(binaryStr.length() - 1)));
                     // 第二位
-                    agentArgMap.put("fileOverlay", String.valueOf(binaryStr.charAt(binaryStr.length() - 2)));
+                    agentParam.setFileOverlay(isValid(binaryStr.charAt(binaryStr.length() - 2)));
                 }
             }
         }
+    }
+
+    /**
+     * 验证有效无效
+     *
+     * @return
+     */
+    private static boolean isValid(char var) {
+        return Objects.equals(var, '1');
     }
 
     /**
@@ -47,7 +51,7 @@ public class ParamHandler {
      */
     public static void loadAgent() {
         // 处理日志
-        LoggerUtil.builder(agentArgMap);
+        LoggerUtil.builder(agentParam);
     }
 
     /**
@@ -56,7 +60,7 @@ public class ParamHandler {
      * @return
      */
     public static Boolean getOutputToConsole() {
-        return Objects.equals(agentArgMap.get("outputToConsole"), "1");
+        return agentParam.isOutputToConsole();
     }
 
 

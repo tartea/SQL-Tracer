@@ -1,5 +1,6 @@
 package org.tracer.logger;
 
+import org.tracer.dto.AgentParam;
 import org.tracer.handler.ParamHandler;
 
 import java.io.BufferedWriter;
@@ -8,7 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 public class LoggerUtil {
 
@@ -17,6 +17,7 @@ public class LoggerUtil {
     private final BufferedWriter writer;
     // 定义 10MB 的字节数
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 
     // 日志级别枚举
     public enum Level {
@@ -27,7 +28,7 @@ public class LoggerUtil {
     /**
      * 私有构造器（单例模式）
      */
-    private LoggerUtil(String logFilePath) {
+    private LoggerUtil(String logFilePath, boolean fileOverlay) {
 
         try {
             // 文件存在，进行重命名
@@ -37,12 +38,20 @@ public class LoggerUtil {
             if (logFile.exists()) {
                 long fileSize = logFile.length();
                 if (fileSize > MAX_FILE_SIZE) {
-                    String backupName = generateBackupFileName(logFile);
-                    File backupFile = new File(backupName);
-                    if (logFile.renameTo(backupFile)) {
-                        System.out.println("Renamed existing log file to: " + backupName);
+
+                    // 0代表新文件
+                    if (fileOverlay) {
+                        // 删除源文件
+                        logFile.delete();
+
                     } else {
-                        System.err.println("Failed to rename log file.");
+                        String backupName = generateBackupFileName(logFile);
+                        File backupFile = new File(backupName);
+                        if (logFile.renameTo(backupFile)) {
+                            System.out.println("Renamed existing log file to: " + backupName);
+                        } else {
+                            System.err.println("Failed to rename log file.");
+                        }
                     }
                 }
             }
@@ -60,10 +69,9 @@ public class LoggerUtil {
     /**
      * 私有构造器（单例模式）
      */
-    public static void builder(Map<String, String> agentArgs) {
-
-        String logFilePath = agentArgs.get("logFilePath") != null ? agentArgs.get("logFilePath") : "sql-tracer.log";
-        LoggerUtil.instance = new LoggerUtil(logFilePath);
+    public static void builder(AgentParam agentParam) {
+        String logFilePath = agentParam.getLogFilePath();
+        LoggerUtil.instance = new LoggerUtil(logFilePath, agentParam.isFileOverlay());
     }
 
     /**
