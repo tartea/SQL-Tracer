@@ -44,7 +44,7 @@ public class TSDBStatementJavassist extends AbstractJavassist {
         // 插入后置逻辑
         StringBuffer afterCodeSql = new StringBuffer();
         afterCodeSql.append("long tempTime = ((Long) this.startTime.get()).longValue();\n");
-        afterCodeSql.append("org.tracer.logger.LoggerUtil.info(\"[mysql][耗时] \"+ (System.currentTimeMillis() - tempTime) +\"毫秒 [sql]\"+ org.tracer.logger.SqlUtil.formatSql(sql))); ");
+        afterCodeSql.append("org.tracer.logger.LoggerUtil.info(\"[TD][耗时] \"+ (System.currentTimeMillis() - tempTime) +\"毫秒 [sql]\"+ org.tracer.logger.SqlUtil.formatSql(sql))); ");
         method.insertAfter(afterCodeSql.toString());
 
     }
