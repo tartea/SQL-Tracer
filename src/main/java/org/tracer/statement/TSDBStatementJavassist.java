@@ -34,22 +34,19 @@ public class TSDBStatementJavassist extends AbstractJavassist {
 
     private void insertCode(CtClass cc, String methodName) throws CannotCompileException, NotFoundException {
         CtMethod method = cc.getDeclaredMethod(methodName);
-        method.instrument(
-                new ExprEditor() {
-                    public void edit(MethodCall m) throws CannotCompileException {
-                        m.replace(
-                                "{\n" +
-                                        "    long start = System.currentTimeMillis();\n" +
-                                        "    try {\n" +
-                                        "        $_ = $proceed($$);\n" +  // 调用原始方法并自动处理返回值
-                                        "    } finally {\n" +
-                                        " long l = System.currentTimeMillis() - start; \n" +
-                                        "       org.tracer.logger.LoggerUtil.info(\"[TSDB][耗时]\"+ l +\"毫秒 [sql ]\"+ org.tracer.logger.SqlUtil.formatSql(sql)); \n" +
-                                        "    }\n" +
-                                        "}");
-                    }
-                }
-        );
+
+        // 插入前置逻辑
+        StringBuffer beforeCodeSql = new StringBuffer();
+        beforeCodeSql.append("this.startTime.set(java.lang.Long.valueOf(System.currentTimeMillis()));");
+        method.insertBefore(beforeCodeSql.toString());
+
+
+        // 插入后置逻辑
+        StringBuffer afterCodeSql = new StringBuffer();
+        afterCodeSql.append("long tempTime = ((Long) this.startTime.get()).longValue();\n");
+        afterCodeSql.append("org.tracer.logger.LoggerUtil.info(\"[mysql][耗时] \"+ (System.currentTimeMillis() - tempTime) +\"毫秒 [sql]\"+ org.tracer.logger.SqlUtil.formatSql(sql))); ");
+        method.insertAfter(afterCodeSql.toString());
+
     }
 
 

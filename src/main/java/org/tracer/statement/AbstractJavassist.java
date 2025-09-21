@@ -5,6 +5,9 @@ import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 import org.tracer.handler.ParamHandler;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public abstract class AbstractJavassist {
 
     /**
@@ -29,12 +32,28 @@ public abstract class AbstractJavassist {
                 cc.defrost();
             }
 
+            // 1. 获取原始的ThreadLocal类（不带泛型）
+            CtClass threadLocalClass = ClassPool.getDefault().get("java.lang.ThreadLocal");
+            // 2. 创建字段
+            CtField startTimeField = new CtField(threadLocalClass, "startTime", cc);
+            startTimeField.setModifiers(Modifier.PRIVATE);
+
+            // 3. 设置初始化表达式（使用原始类型）
+            CtField.Initializer initializer = CtField.Initializer.byExpr(
+                    "new java.lang.ThreadLocal() {\n" +
+                            "    protected Object initialValue() {\n" +
+                            "        return Long.valueOf(0L);\n" +
+                            "    }\n" +
+                            "}"
+            );
+            // 4. 添加字段
+            cc.addField(startTimeField, initializer);
+
             // 代码增强
             instrumentCtClass(cc);
 
             byte[] byteCode = cc.toBytecode();
             cc.detach(); // 释放资源
-
             // 加载组件
             ParamHandler.loadAgent();
 
@@ -44,6 +63,27 @@ public abstract class AbstractJavassist {
             e.printStackTrace();
         }
         return null;
+    }
+    /**
+     * 保存class文件到磁盘
+     */
+    private void saveClassToFile(CtClass ctClass, byte[] bytecode) {
+        try {
+            String className = ctClass.getName().replace('.', '/');
+            String outputPath = "./modified_classes/" + className + ".class";
+
+            // 确保目录存在
+            new java.io.File(outputPath).getParentFile().mkdirs();
+
+            try (FileOutputStream fos = new FileOutputStream(outputPath)) {
+                fos.write(bytecode);
+            }
+
+            System.out.println("修改后的class已保存到: " + outputPath);
+
+        } catch (IOException e) {
+            System.err.println("保存class文件失败: " + e.getMessage());
+        }
     }
 
     /**

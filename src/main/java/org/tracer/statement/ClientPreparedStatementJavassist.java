@@ -1,9 +1,6 @@
 package org.tracer.statement;
 
-import javassist.CannotCompileException;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
+import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
@@ -39,23 +36,18 @@ public class ClientPreparedStatementJavassist extends AbstractJavassist {
     }
 
     private void insertCode(CtMethod method) throws CannotCompileException {
-        method.instrument(
-                new ExprEditor() {
-                    public void edit(MethodCall m) throws CannotCompileException {
-                        m.replace(
-                                "{\n" +
-                                        getCodeBlock() +
-                                        "    long start = System.currentTimeMillis();\n" +
-                                        "    try {\n" +
-                                        "        $_ = $proceed($$);\n" +  // 调用原始方法并自动处理返回值
-                                        "    } finally {\n" +
-                                        " long l = System.currentTimeMillis() - start; \n" +
-                                        "       org.tracer.logger.LoggerUtil.info(\"[mysql][耗时]\"+ l +\"毫秒 [sql ]\"+ statementSql); \n" +
-                                        "    }\n" +
-                                        "}");
-                    }
-                }
-        );
+        // 插入前置逻辑
+        StringBuffer beforeCodeSql = new StringBuffer();
+        beforeCodeSql.append("this.startTime.set(java.lang.Long.valueOf(System.currentTimeMillis()));");
+        method.insertBefore(beforeCodeSql.toString());
+
+
+        // 插入后置逻辑
+        StringBuffer afterCodeSql = new StringBuffer();
+        afterCodeSql.append(getCodeBlock());
+        afterCodeSql.append("long tempTime = ((Long) this.startTime.get()).longValue();\n");
+        afterCodeSql.append("org.tracer.logger.LoggerUtil.info(\"[mysql][耗时] \"+ (System.currentTimeMillis() - tempTime) +\"毫秒 [sql]\"+ statementSql); ");
+        method.insertAfter(afterCodeSql.toString());
     }
 
     /**
